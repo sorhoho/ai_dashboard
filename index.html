@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise AI Adoption Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="header-gradient sticky top-0 z-50">
+  <div class="px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-xl font-bold shadow-lg">AI</div>
+      <div>
+        <h1 class="text-lg font-bold text-white tracking-tight">Enterprise AI Adoption Dashboard</h1>
+        <p class="text-xs text-slate-400 mt-0.5">IT SDLC AI Integration Tracker</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-xs text-slate-400">
+      <span class="hidden sm:flex items-center gap-2"><span class="pulse-dot"></span>Live · Updated 2:00 AM UTC daily</span>
+      <span class="bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg font-mono">22 May 2026</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Tab Navigation ──────────────────────────────────────────────────────── -->
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="overview">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+    Overview
+  </button>
+  <button class="tab-btn" data-tab="kiro">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+    AWS Kiro · Dev Assist
+  </button>
+  <button class="tab-btn" data-tab="bizreq">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Business Requirements
+  </button>
+  <button class="tab-btn" data-tab="solution">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    Solution Design
+  </button>
+  <button class="tab-btn" data-tab="qa">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+    QA / Testing
+  </button>
+  <button class="tab-btn" data-tab="prod">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+    Production Deployment
+  </button>
+</nav>
+
+<!-- ── Main Content ────────────────────────────────────────────────────────── -->
+<main class="px-4 sm:px-6 py-6 max-w-screen-2xl mx-auto">
+
+  <!-- ════════════════════════════════════════════════════════════════
+       OVERVIEW TAB
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="panel-overview" class="tab-panel active">
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="card stat-card blue p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Active AI Users</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="247">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 18% vs last month</p>
+      </div>
+      <div class="card stat-card green p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total AI Credits Used</p>
+        <p class="text-3xl font-bold text-white mt-2"><span data-count="284600">0</span></p>
+        <p class="text-xs text-green-400 mt-1">↑ 23% vs last month</p>
+      </div>
+      <div class="card stat-card purple p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">AI Tools Adopted</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="12">0</p>
+        <p class="text-xs text-blue-400 mt-1">Across 5 SDLC phases</p>
+      </div>
+      <div class="card stat-card orange p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Overall SDLC Coverage</p>
+        <p class="text-3xl font-bold text-white mt-2"><span data-count="59" data-suffix="%">0</span></p>
+        <p class="text-xs text-orange-400 mt-1">Target: 80% by Q4 2026</p>
+      </div>
+    </div>
+
+    <!-- Phase adoption bars (overview) -->
+    <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-6">
+      <!-- Phase pill cards -->
+      <div class="card p-4 flex items-center gap-3">
+        <div class="phase-icon bg-orange-500/20 text-orange-400">📋</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-slate-400 font-medium truncate">Business Req.</p>
+          <div class="adoption-bar-track mt-1.5"><div class="adoption-bar-fill bg-orange-400" style="width:65%"></div></div>
+          <p class="text-xs font-semibold text-orange-400 mt-1">65%</p>
+        </div>
+      </div>
+      <div class="card p-4 flex items-center gap-3">
+        <div class="phase-icon bg-purple-500/20 text-purple-400">🏗️</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-slate-400 font-medium truncate">Solution Design</p>
+          <div class="adoption-bar-track mt-1.5"><div class="adoption-bar-fill bg-purple-400" style="width:51%"></div></div>
+          <p class="text-xs font-semibold text-purple-400 mt-1">51%</p>
+        </div>
+      </div>
+      <div class="card p-4 flex items-center gap-3">
+        <div class="phase-icon bg-blue-500/20 text-blue-400">💻</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-slate-400 font-medium truncate">Development</p>
+          <div class="adoption-bar-track mt-1.5"><div class="adoption-bar-fill bg-blue-400" style="width:78%"></div></div>
+          <p class="text-xs font-semibold text-blue-400 mt-1">78%</p>
+        </div>
+      </div>
+      <div class="card p-4 flex items-center gap-3">
+        <div class="phase-icon bg-green-500/20 text-green-400">🧪</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-slate-400 font-medium truncate">QA / Testing</p>
+          <div class="adoption-bar-track mt-1.5"><div class="adoption-bar-fill bg-green-400" style="width:58%"></div></div>
+          <p class="text-xs font-semibold text-green-400 mt-1">58%</p>
+        </div>
+      </div>
+      <div class="card p-4 flex items-center gap-3">
+        <div class="phase-icon bg-cyan-500/20 text-cyan-400">🚀</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-slate-400 font-medium truncate">Prod. Deploy</p>
+          <div class="adoption-bar-track mt-1.5"><div class="adoption-bar-fill bg-cyan-400" style="width:42%"></div></div>
+          <p class="text-xs font-semibold text-cyan-400 mt-1">42%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-blue-400"></span>AI Adoption by SDLC Phase</div>
+        <canvas id="chart-sdlc-adoption"></canvas>
+      </div>
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-green-400"></span>Monthly AI Adoption Trend (% Eligible Users)</div>
+        <canvas id="chart-monthly-trend"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       AWS KIRO TAB
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="panel-kiro" class="tab-panel">
+
+    <!-- Info Banner -->
+    <div class="info-banner mb-6">
+      <strong>Data Source:</strong> Kiro User Activity Reports (CSV) — delivered daily at 2:00 AM UTC to your S3 bucket.
+      Enable via <strong>Kiro Console → Settings → User Activity Reports</strong>. &nbsp;|&nbsp;
+      <strong>Architecture:</strong> S3 (CSV) → AWS Glue Crawler → Amazon Athena → BI Tool (QuickSight / Power BI / Tableau).
+      &nbsp;|&nbsp; Tip: Convert CSV to Parquet for better performance and lower Athena query costs.
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="card stat-card blue p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Active Developers</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="20">0</p>
+        <p class="text-xs text-slate-500 mt-1">Sample: 1 day report</p>
+      </div>
+      <div class="card stat-card purple p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Messages</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="6383">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 14% vs yesterday</p>
+      </div>
+      <div class="card stat-card orange p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Credits Used</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="19157">0</p>
+        <p class="text-xs text-slate-500 mt-1">Enterprise tier</p>
+      </div>
+      <div class="card stat-card green p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Avg Messages / User</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="319">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 8% vs last week</p>
+      </div>
+    </div>
+
+    <!-- Charts row 1 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-blue-400"></span>Top 10 Users by Messages</div>
+        <canvas id="chart-kiro-top-users"></canvas>
+      </div>
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-green-400"></span>Daily Activity Trend (Last 30 Days)</div>
+        <canvas id="chart-kiro-daily"></canvas>
+      </div>
+    </div>
+
+    <!-- Charts row 2 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="chart-container">
+        <div class="chart-title"><span class="chart-title-dot bg-purple-400"></span>Usage by Client Type (Messages)</div>
+        <canvas id="chart-kiro-client"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title"><span class="chart-title-dot bg-orange-400"></span>Usage by AI Model</div>
+        <canvas id="chart-kiro-models"></canvas>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="chart-container">
+      <div class="chart-title"><span class="chart-title-dot bg-cyan-400"></span>User Activity Report — 21 May 2026 (Sample CSV Data)</div>
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Client Type</th>
+              <th>Tier</th>
+              <th class="text-right">Total Messages</th>
+              <th class="text-right">Credits Used</th>
+              <th class="text-right">Sonnet</th>
+              <th class="text-right">Haiku</th>
+            </tr>
+          </thead>
+          <tbody id="kiro-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       BUSINESS REQUIREMENTS TAB
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="panel-bizreq" class="tab-panel">
+
+    <div class="info-banner mb-6">
+      <strong>Business Requirements AI Assist</strong> — AI tools help Business Analysts draft user stories, acceptance criteria,
+      gap analysis, and requirement validation. Reduces ambiguity and improves downstream quality across design and development phases.
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="card stat-card orange p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">BA Users with AI Assist</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="48">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 22% vs last quarter</p>
+      </div>
+      <div class="card stat-card blue p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Documents Generated</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="312">0</p>
+        <p class="text-xs text-slate-500 mt-1">This month</p>
+      </div>
+      <div class="card stat-card green p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Requirements AI-Reviewed</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="1840">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 35% vs last month</p>
+      </div>
+      <div class="card stat-card purple p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Est. Time Saved (hrs)</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="920">0</p>
+        <p class="text-xs text-slate-500 mt-1">~4.6 hrs / BA / week</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-orange-400"></span>Requirements Quality Score — Before vs After AI</div>
+        <canvas id="chart-biz-quality"></canvas>
+      </div>
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-blue-400"></span>AI Tools in Use (Users)</div>
+        <canvas id="chart-biz-tools"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SOLUTION DESIGN TAB
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="panel-solution" class="tab-panel">
+
+    <div class="info-banner mb-6">
+      <strong>Solution Design AI Assist</strong> — Architects use AI to generate architecture decision records (ADRs), review design
+      patterns, identify security risks, estimate costs, and produce architecture diagrams. Improves design completeness and
+      consistency across microservices, cloud, and integration projects.
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="card stat-card purple p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Architects Using AI</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="29">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 16% vs last quarter</p>
+      </div>
+      <div class="card stat-card blue p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Design Documents</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="156">0</p>
+        <p class="text-xs text-slate-500 mt-1">This month (all types)</p>
+      </div>
+      <div class="card stat-card orange p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Patterns Suggested</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="284">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 28% vs last month</p>
+      </div>
+      <div class="card stat-card green p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Reviews Automated</p>
+        <p class="text-3xl font-bold text-white mt-2"><span data-count="68" data-suffix="%">0</span></p>
+        <p class="text-xs text-slate-500 mt-1">Of all design reviews</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-purple-400"></span>AI Impact on Design Quality</div>
+        <canvas id="chart-solution-radar"></canvas>
+      </div>
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-blue-400"></span>Design Artifacts Generated per Month</div>
+        <canvas id="chart-solution-artifacts"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       QA / TESTING TAB
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="panel-qa" class="tab-panel">
+
+    <div class="info-banner mb-6">
+      <strong>QA / Testing AI Assist</strong> — AI generates test cases from user stories and acceptance criteria, identifies
+      edge cases, auto-creates regression suites, and analyses defect patterns. Accelerates test coverage while reducing
+      manual effort in functional, integration, and performance testing.
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="card stat-card green p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">QA Engineers with AI</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="38">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 19% vs last quarter</p>
+      </div>
+      <div class="card stat-card blue p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Test Cases Generated</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="780">0</p>
+        <p class="text-xs text-slate-500 mt-1">This month by AI</p>
+      </div>
+      <div class="card stat-card red p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Defects Caught by AI</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="284">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 31% vs last month</p>
+      </div>
+      <div class="card stat-card orange p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Test Coverage</p>
+        <p class="text-3xl font-bold text-white mt-2"><span data-count="84" data-suffix="%">0</span></p>
+        <p class="text-xs text-green-400 mt-1">↑ from 61% (6 months ago)</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-green-400"></span>Test Cases Generated — AI vs Manual</div>
+        <canvas id="chart-qa-testcases"></canvas>
+      </div>
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-blue-400"></span>Defects Caught by AI — by Severity</div>
+        <canvas id="chart-qa-defects"></canvas>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="chart-container">
+        <div class="chart-title"><span class="chart-title-dot bg-purple-400"></span>Test Case Distribution by Type</div>
+        <canvas id="chart-qa-types"></canvas>
+      </div>
+      <div class="card p-5">
+        <p class="text-sm font-semibold text-slate-200 mb-4">AI Testing Tools in Use</p>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>GitHub Copilot (Test Gen)</span><span class="text-white font-semibold">78%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-blue-400" style="width:78%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Claude (Test Case Review)</span><span class="text-white font-semibold">65%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-orange-400" style="width:65%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Selenium AI (E2E)</span><span class="text-white font-semibold">42%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-green-400" style="width:42%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Applitools (Visual AI)</span><span class="text-white font-semibold">28%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-purple-400" style="width:28%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Mabl (AI-driven E2E)</span><span class="text-white font-semibold">21%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-cyan-400" style="width:21%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PRODUCTION DEPLOYMENT TAB
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="panel-prod" class="tab-panel">
+
+    <div class="info-banner mb-6">
+      <strong>Production Deployment AI Assist</strong> — AI assists DevOps teams with intelligent deployment pipelines,
+      anomaly detection, automated rollback decisions, incident triage, and runbook generation. Reduces MTTR and
+      increases deployment confidence through AI-guided validation gates.
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="card stat-card cyan p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Deployments with AI Assist</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="88">0</p>
+        <p class="text-xs text-green-400 mt-1">This month</p>
+      </div>
+      <div class="card stat-card green p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Mean Time to Deploy</p>
+        <p class="text-3xl font-bold text-white mt-2"><span data-count="12">0</span> <span class="text-lg text-slate-400">min</span></p>
+        <p class="text-xs text-green-400 mt-1">↓ from 28 min (6mo ago)</p>
+      </div>
+      <div class="card stat-card orange p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Rollbacks Prevented</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="14">0</p>
+        <p class="text-xs text-slate-500 mt-1">AI caught pre-deploy</p>
+      </div>
+      <div class="card stat-card blue p-5">
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Incidents Auto-Resolved</p>
+        <p class="text-3xl font-bold text-white mt-2" data-count="32">0</p>
+        <p class="text-xs text-green-400 mt-1">↑ 40% vs last month</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div class="chart-container lg:col-span-2 tall">
+        <div class="chart-title"><span class="chart-title-dot bg-cyan-400"></span>Deployment Frequency (per Week)</div>
+        <canvas id="chart-prod-frequency"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title"><span class="chart-title-dot bg-green-400"></span>Deployment Success Rate</div>
+        <div class="flex flex-col items-center justify-center pt-4">
+          <div style="max-width:200px; width:100%; position:relative;">
+            <canvas id="chart-prod-success"></canvas>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+              <p class="text-3xl font-bold text-white">97%</p>
+              <p class="text-xs text-slate-400">Success</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="chart-container tall">
+        <div class="chart-title"><span class="chart-title-dot bg-blue-400"></span>AI-Assisted vs Manual Deployments</div>
+        <canvas id="chart-prod-ai-manual"></canvas>
+      </div>
+      <div class="card p-5">
+        <p class="text-sm font-semibold text-slate-200 mb-4">DevOps AI Tool Adoption</p>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>AWS CodeWhisperer</span><span class="text-white font-semibold">72%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-orange-400" style="width:72%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Amazon Q (DevOps)</span><span class="text-white font-semibold">58%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-blue-400" style="width:58%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>GitHub Copilot (Pipelines)</span><span class="text-white font-semibold">45%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-cyan-400" style="width:45%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Dynatrace Davis AI</span><span class="text-white font-semibold">38%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-purple-400" style="width:38%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>PagerDuty AI</span><span class="text-white font-semibold">29%</span></div>
+            <div class="adoption-bar-track"><div class="adoption-bar-fill bg-green-400" style="width:29%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Footer ──────────────────────────────────────────────────────────────── -->
+<footer class="footer mt-8">
+  <span>Data refreshed daily at 2:00 AM UTC &nbsp;|&nbsp; Powered by AWS Kiro &amp; Enterprise AI Tools</span>
+  <span class="hidden sm:block">S3 → AWS Glue → Amazon Athena → Dashboard</span>
+</footer>
+
+<script src="js/dashboard.js"></script>
+</body>
+</html>
