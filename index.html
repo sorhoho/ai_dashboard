@@ -152,35 +152,71 @@
   ════════════════════════════════════════════════════════════════ -->
   <div id="panel-kiro" class="tab-panel">
 
-    <!-- Info Banner -->
-    <div class="info-banner mb-6">
-      <strong>Data Source:</strong> Kiro User Activity Reports (CSV) — delivered daily at 2:00 AM UTC to your S3 bucket.
-      Enable via <strong>Kiro Console → Settings → User Activity Reports</strong>. &nbsp;|&nbsp;
-      <strong>Architecture:</strong> S3 (CSV) → AWS Glue Crawler → Amazon Athena → BI Tool (QuickSight / Power BI / Tableau).
-      &nbsp;|&nbsp; Tip: Convert CSV to Parquet for better performance and lower Athena query costs.
+    <!-- S3 Status Card -->
+    <div class="card p-4 mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div class="flex items-center gap-3 flex-1 min-w-0">
+        <div class="phase-icon bg-blue-500/20 text-blue-400 text-base flex-shrink-0">☁️</div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-semibold text-slate-200">Kiro User Activity Reports</span>
+            <span id="s3-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-600/50 text-slate-400 border border-slate-600">
+              Checking S3…
+            </span>
+          </div>
+          <p id="s3-status-detail" class="text-xs text-slate-500 mt-0.5 truncate">
+            S3 (CSV) → AWS Glue Crawler → Amazon Athena → BI Tool
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <label class="text-xs text-slate-400 whitespace-nowrap">Report date:</label>
+        <select id="kiro-date-select" disabled
+          class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-300
+                 focus:outline-none focus:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed">
+          <option>Latest</option>
+        </select>
+        <button onclick="fetchKiroReport(document.getElementById('kiro-date-select').value)"
+          class="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+          Refresh
+        </button>
+      </div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <div class="card stat-card blue p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Active Developers</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="20">0</p>
-        <p class="text-xs text-slate-500 mt-1">Sample: 1 day report</p>
+    <!-- Kiro Stat Cards (values set by JS from fetched CSV) -->
+    <div class="relative">
+      <!-- Loading overlay -->
+      <div id="kiro-loading" style="display:none"
+        class="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/60 rounded-xl backdrop-blur-sm">
+        <div class="flex items-center gap-3 text-slate-300 text-sm">
+          <svg class="animate-spin w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          Fetching from S3…
+        </div>
       </div>
-      <div class="card stat-card purple p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Messages</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="6383">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 14% vs yesterday</p>
-      </div>
-      <div class="card stat-card orange p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Credits Used</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="19157">0</p>
-        <p class="text-xs text-slate-500 mt-1">Enterprise tier</p>
-      </div>
-      <div class="card stat-card green p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Avg Messages / User</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="319">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 8% vs last week</p>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="card stat-card blue p-5">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Active Developers</p>
+          <p class="text-3xl font-bold text-white mt-2" id="kiro-stat-devs">—</p>
+          <p id="kiro-report-date" class="text-xs text-slate-500 mt-1">Loading…</p>
+        </div>
+        <div class="card stat-card purple p-5">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Messages</p>
+          <p class="text-3xl font-bold text-white mt-2" id="kiro-stat-msgs">—</p>
+          <p class="text-xs text-slate-400 mt-1">From S3 CSV report</p>
+        </div>
+        <div class="card stat-card orange p-5">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Credits Used</p>
+          <p class="text-3xl font-bold text-white mt-2" id="kiro-stat-creds">—</p>
+          <p class="text-xs text-slate-500 mt-1">Enterprise tier</p>
+        </div>
+        <div class="card stat-card green p-5">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Avg Messages / User</p>
+          <p class="text-3xl font-bold text-white mt-2" id="kiro-stat-avg">—</p>
+          <p class="text-xs text-slate-400 mt-1">Per user, this report</p>
+        </div>
       </div>
     </div>
 
@@ -210,7 +246,7 @@
 
     <!-- Data Table -->
     <div class="chart-container">
-      <div class="chart-title"><span class="chart-title-dot bg-cyan-400"></span>User Activity Report — 21 May 2026 (Sample CSV Data)</div>
+      <div class="chart-title"><span class="chart-title-dot bg-cyan-400"></span>User Activity Report — Per-User Breakdown</div>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
@@ -235,32 +271,35 @@
   ════════════════════════════════════════════════════════════════ -->
   <div id="panel-bizreq" class="tab-panel">
 
-    <div class="info-banner mb-6">
-      <strong>Business Requirements AI Assist</strong> — AI tools help Business Analysts draft user stories, acceptance criteria,
-      gap analysis, and requirement validation. Reduces ambiguity and improves downstream quality across design and development phases.
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div class="info-banner flex-1">
+        <strong>Business Requirements AI Assist</strong> — AI tools help Business Analysts draft user stories, acceptance criteria,
+        gap analysis, and requirement validation. Reduces ambiguity and improves downstream quality across design and development phases.
+      </div>
+      <div class="manual-edit-header flex-shrink-0 pt-1"></div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Stat Cards (values driven by manual metrics API) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-metric-section="bizreq">
       <div class="card stat-card orange p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">BA Users with AI Assist</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="48">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 22% vs last quarter</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="activeUsers">48</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card blue p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Documents Generated</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="312">0</p>
-        <p class="text-xs text-slate-500 mt-1">This month</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="documentsGenerated">312</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card green p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Requirements AI-Reviewed</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="1840">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 35% vs last month</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="requirementsReviewed">1,840</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card purple p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Est. Time Saved (hrs)</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="920">0</p>
-        <p class="text-xs text-slate-500 mt-1">~4.6 hrs / BA / week</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="timeSavedHours">920</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
     </div>
 
@@ -281,33 +320,36 @@
   ════════════════════════════════════════════════════════════════ -->
   <div id="panel-solution" class="tab-panel">
 
-    <div class="info-banner mb-6">
-      <strong>Solution Design AI Assist</strong> — Architects use AI to generate architecture decision records (ADRs), review design
-      patterns, identify security risks, estimate costs, and produce architecture diagrams. Improves design completeness and
-      consistency across microservices, cloud, and integration projects.
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div class="info-banner flex-1">
+        <strong>Solution Design AI Assist</strong> — Architects use AI to generate architecture decision records (ADRs), review design
+        patterns, identify security risks, estimate costs, and produce architecture diagrams. Improves design completeness and
+        consistency across microservices, cloud, and integration projects.
+      </div>
+      <div class="manual-edit-header flex-shrink-0 pt-1"></div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Stat Cards (values driven by manual metrics API) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-metric-section="solution">
       <div class="card stat-card purple p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Architects Using AI</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="29">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 16% vs last quarter</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="architectsUsingAI">29</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card blue p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Design Documents</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="156">0</p>
-        <p class="text-xs text-slate-500 mt-1">This month (all types)</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="designDocuments">156</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card orange p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Patterns Suggested</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="284">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 28% vs last month</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="patternsSuggested">284</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card green p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Reviews Automated</p>
-        <p class="text-3xl font-bold text-white mt-2"><span data-count="68" data-suffix="%">0</span></p>
-        <p class="text-xs text-slate-500 mt-1">Of all design reviews</p>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Reviews Automated (%)</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="reviewsAutomated">68</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
     </div>
 
@@ -328,33 +370,36 @@
   ════════════════════════════════════════════════════════════════ -->
   <div id="panel-qa" class="tab-panel">
 
-    <div class="info-banner mb-6">
-      <strong>QA / Testing AI Assist</strong> — AI generates test cases from user stories and acceptance criteria, identifies
-      edge cases, auto-creates regression suites, and analyses defect patterns. Accelerates test coverage while reducing
-      manual effort in functional, integration, and performance testing.
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div class="info-banner flex-1">
+        <strong>QA / Testing AI Assist</strong> — AI generates test cases from user stories and acceptance criteria, identifies
+        edge cases, auto-creates regression suites, and analyses defect patterns. Accelerates test coverage while reducing
+        manual effort in functional, integration, and performance testing.
+      </div>
+      <div class="manual-edit-header flex-shrink-0 pt-1"></div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Stat Cards (values driven by manual metrics API) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-metric-section="qa">
       <div class="card stat-card green p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">QA Engineers with AI</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="38">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 19% vs last quarter</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="engineersWithAI">38</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card blue p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Test Cases Generated</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="780">0</p>
-        <p class="text-xs text-slate-500 mt-1">This month by AI</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="testCasesGenerated">780</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card red p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Defects Caught by AI</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="284">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 31% vs last month</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="defectsCaught">284</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card orange p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Test Coverage</p>
-        <p class="text-3xl font-bold text-white mt-2"><span data-count="84" data-suffix="%">0</span></p>
-        <p class="text-xs text-green-400 mt-1">↑ from 61% (6 months ago)</p>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Test Coverage (%)</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="testCoverage">84</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
     </div>
 
@@ -407,33 +452,36 @@
   ════════════════════════════════════════════════════════════════ -->
   <div id="panel-prod" class="tab-panel">
 
-    <div class="info-banner mb-6">
-      <strong>Production Deployment AI Assist</strong> — AI assists DevOps teams with intelligent deployment pipelines,
-      anomaly detection, automated rollback decisions, incident triage, and runbook generation. Reduces MTTR and
-      increases deployment confidence through AI-guided validation gates.
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div class="info-banner flex-1">
+        <strong>Production Deployment AI Assist</strong> — AI assists DevOps teams with intelligent deployment pipelines,
+        anomaly detection, automated rollback decisions, incident triage, and runbook generation. Reduces MTTR and
+        increases deployment confidence through AI-guided validation gates.
+      </div>
+      <div class="manual-edit-header flex-shrink-0 pt-1"></div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Stat Cards (values driven by manual metrics API) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-metric-section="prod">
       <div class="card stat-card cyan p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Deployments with AI Assist</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="88">0</p>
-        <p class="text-xs text-green-400 mt-1">This month</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="deploymentsWithAI">88</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card green p-5">
-        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Mean Time to Deploy</p>
-        <p class="text-3xl font-bold text-white mt-2"><span data-count="12">0</span> <span class="text-lg text-slate-400">min</span></p>
-        <p class="text-xs text-green-400 mt-1">↓ from 28 min (6mo ago)</p>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Mean Time to Deploy (min)</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="meanTimeToDeploy">12</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card orange p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Rollbacks Prevented</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="14">0</p>
-        <p class="text-xs text-slate-500 mt-1">AI caught pre-deploy</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="rollbacksPrevented">14</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
       <div class="card stat-card blue p-5">
         <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Incidents Auto-Resolved</p>
-        <p class="text-3xl font-bold text-white mt-2" data-count="32">0</p>
-        <p class="text-xs text-green-400 mt-1">↑ 40% vs last month</p>
+        <p class="text-3xl font-bold text-white mt-2" data-metric-key="incidentsAutoResolved">32</p>
+        <p class="text-xs text-slate-400 mt-1">Manual input</p>
       </div>
     </div>
 

@@ -1,11 +1,15 @@
-FROM nginx:1.27-alpine
+FROM node:22-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY index.html /usr/share/nginx/html/index.html
-COPY css/       /usr/share/nginx/html/css/
-COPY js/        /usr/share/nginx/html/js/
-COPY data/      /usr/share/nginx/html/data/
+WORKDIR /app
 
-EXPOSE 80
+COPY package*.json ./
+RUN npm ci --production
+
+COPY . .
+
+EXPOSE 8080
+
 HEALTHCHECK --interval=5s --timeout=3s --retries=5 \
-  CMD wget -qO- http://localhost/health || exit 1
+  CMD wget -qO- http://localhost:8080/health || exit 1
+
+CMD ["node", "server.js"]

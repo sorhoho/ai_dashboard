@@ -5,13 +5,20 @@ services:
     image: ai-dashboard:latest
     container_name: ai-dashboard
     ports:
-      - "8080:80"
+      - "8080:8080"
+    env_file:
+      - .env          # copy .env.example → .env and fill in your values
+    environment:
+      PORT: 8080
+    volumes:
+      # Persist manually-entered metrics across container restarts
+      - dashboard-data:/app/data
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
       interval: 5s
       timeout: 3s
       retries: 5
-      start_period: 5s
+      start_period: 10s
     restart: unless-stopped
     networks:
       - dashboard-net
@@ -24,9 +31,12 @@ services:
         condition: service_healthy
     networks:
       - dashboard-net
-    entrypoint: ["/bin/sh", "/tests/run_tests.sh", "http://dashboard"]
+    entrypoint: ["/bin/sh", "/tests/run_tests.sh", "http://dashboard:8080"]
     volumes:
       - ./tests:/tests:ro
+
+volumes:
+  dashboard-data:
 
 networks:
   dashboard-net:
