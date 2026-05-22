@@ -1,0 +1,33 @@
+services:
+
+  dashboard:
+    build: .
+    image: ai-dashboard:latest
+    container_name: ai-dashboard
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - dashboard-net
+
+  test:
+    image: curlimages/curl:8.8.0
+    container_name: ai-dashboard-tests
+    depends_on:
+      dashboard:
+        condition: service_healthy
+    networks:
+      - dashboard-net
+    entrypoint: ["/bin/sh", "/tests/run_tests.sh", "http://dashboard"]
+    volumes:
+      - ./tests:/tests:ro
+
+networks:
+  dashboard-net:
+    driver: bridge
