@@ -130,17 +130,25 @@ async function refreshKiroStatus() {
 }
 
 function renderS3StatusBadge(status) {
-  const badge = document.getElementById('s3-status-badge');
+  const badge  = document.getElementById('s3-status-badge');
   const detail = document.getElementById('s3-status-detail');
   if (!badge) return;
-  if (status.configured) {
+
+  if (status.connected) {
+    // Real HeadBucket succeeded — genuinely reachable
     badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-500/15 text-green-400 border border-green-500/25';
     badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> S3 Connected';
     if (detail) detail.textContent = `s3://${status.bucket}/${status.prefix}  ·  ${status.region}`;
+  } else if (status.configured) {
+    // Bucket name set but HeadBucket failed — wrong bucket, bad creds, network error
+    badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/25';
+    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span> S3 Unreachable';
+    if (detail) detail.textContent = `Cannot reach s3://${status.bucket} — check bucket name, credentials, and region. (${status.error || 'connection failed'})  Showing sample CSV fallback.`;
   } else {
+    // KIRO_S3_BUCKET not set at all
     badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/15 text-yellow-400 border border-yellow-500/25';
     badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> S3 Not Configured';
-    if (detail) detail.textContent = 'Set KIRO_S3_BUCKET env var to enable live data. Showing sample CSV fallback.';
+    if (detail) detail.textContent = 'Set KIRO_S3_BUCKET in your .env to enable live data.  Showing sample CSV fallback.';
   }
 }
 

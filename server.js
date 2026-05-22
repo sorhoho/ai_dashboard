@@ -7,7 +7,7 @@ try { require('fs').readFileSync('.env').toString().split('\n').forEach(l => {
 }); } catch {}
 
 const express = require('express');
-const { S3Client, GetObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, ListObjectsV2Command, HeadBucketCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 const fs   = require('fs');
 
@@ -63,14 +63,27 @@ app.get('/health', (req, res) => {
 
 // ── Kiro S3 API ───────────────────────────────────────────────────────────────
 
-// GET /api/kiro/status — S3 config check (no real S3 call)
-app.get('/api/kiro/status', (req, res) => {
-  res.json({
-    configured: !!BUCKET,
-    bucket:     BUCKET  || null,
-    prefix:     PREFIX,
-    region:     process.env.AWS_REGION || 'ap-southeast-1',
-  });
+// GET /api/kiro/status — probe S3 with HeadBucket to verify real connectivity
+app.get('/api/kiro/status', async (req, res) => {
+  const base = { bucket: BUCKET || null, prefix: PREFIX, region: process.env.AWS_REGION || 'ap-southeast-1' };
+
+  if (!BUCKET) {
+    return res.json({ ...base, configured: false, connected: false });
+  }
+
+  try {
+    await s3.send(new HeadBucketCommand({ Bucket: BUCKET }));
+    res.json({ ...base, configured: true, connected: true });
+  } catch (err) {
+    // Bucket exists but credentials lack s3:ListBucket → still reachable
+    const reachable = err.$metadata?.httpStatusCode === 403;
+    res.json({
+      ...base,
+      configured: true,
+      connected:  reachable,
+      error:      reachable ? null : (err.name || err.message),
+    });
+  }
 });
 
 // GET /api/kiro/dates — list dates that have reports in S3
