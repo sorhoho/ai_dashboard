@@ -79,6 +79,9 @@ const MANUAL_SECTIONS = {
 // In-memory copy of manual metrics (loaded from API on init)
 let manualMetrics = {};
 
+// Kiro live data — populated by renderKiro(), read by updateOverviewStats()
+let kiroData = { activeDevs: 0, totalCreds: 0 };
+
 // Registered Chart.js instances (for destruction on re-render)
 const chartRegistry = {};
 
@@ -218,6 +221,10 @@ function renderKiro(rows, reportDate, source) {
   setKiroCard('kiro-stat-creds',  totalCreds);
   setKiroCard('kiro-stat-avg',    avgMsgs);
 
+  // Expose for Overview aggregation
+  kiroData = { activeDevs, totalCreds };
+  updateOverviewStats();
+
   // Re-render charts
   buildKiroTopUsers(rows);
   buildKiroClientType(rows);
@@ -317,21 +324,40 @@ function buildKiroTable(rows) {
 
 // ── Manual input — edit forms ─────────────────────────────────────────────────
 
+function formatSavedTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 function initEditForms() {
+  const lastSavedISO = localStorage.getItem('manualMetrics_lastSaved');
+
   Object.entries(MANUAL_SECTIONS).forEach(([section, cfg]) => {
     const panel = document.getElementById(`panel-${section}`);
     if (!panel) return;
 
-    // Inject edit button into the panel header area
+    // Inject edit button + last-saved label into the panel header area
     const header = panel.querySelector('.manual-edit-header');
     if (!header) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'flex flex-col items-end gap-1';
 
     const btn = document.createElement('button');
     btn.id = `edit-btn-${section}`;
     btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors';
     btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Edit Metrics';
     btn.onclick = () => toggleEditPanel(section);
-    header.appendChild(btn);
+
+    const savedLabel = document.createElement('span');
+    savedLabel.id = `saved-label-${section}`;
+    savedLabel.className = 'text-xs text-slate-500';
+    savedLabel.textContent = lastSavedISO ? `Saved ${formatSavedTime(lastSavedISO)}` : '';
+
+    wrap.appendChild(btn);
+    wrap.appendChild(savedLabel);
+    header.appendChild(wrap);
 
     // Build edit form panel
     const formEl = document.createElement('div');
@@ -406,6 +432,16 @@ async function saveManualSection(section) {
     const { data } = await res.json();
     manualMetrics = data;
     applyManualMetrics();
+
+    const now = new Date().toISOString();
+    localStorage.setItem('manualMetrics_lastSaved', now);
+    const formatted = formatSavedTime(now);
+
+    // Update every section's saved label (all share the same data file)
+    document.querySelectorAll('[id^="saved-label-"]').forEach(el => {
+      el.textContent = `Saved ${formatted}`;
+    });
+
     if (statusEl) { statusEl.textContent = '✓ Saved'; statusEl.className = 'text-xs text-green-400 self-center ml-2'; }
     setTimeout(() => { if (statusEl) statusEl.textContent = ''; toggleEditPanel(section); }, 1200);
   } catch (err) {
@@ -439,6 +475,34 @@ function applyManualMetrics() {
       if (val !== undefined) el.textContent = Number(val).toLocaleString();
     });
   });
+  updateOverviewStats();
+}
+
+function updateOverviewStats() {
+  const m = manualMetrics;
+
+  // Total Active AI Users = sum of all section headcounts + Kiro developers
+  const totalUsers = (m.bizreq?.activeUsers        || 0)
+                   + (m.solution?.architectsUsingAI || 0)
+                   + (m.qa?.engineersWithAI         || 0)
+                   + kiroData.activeDevs;
+
+  const usersEl = document.getElementById('overview-stat-users');
+  if (usersEl) usersEl.textContent = totalUsers.toLocaleString();
+
+  // Total AI Credits Used = from Kiro live data (only tool that reports credits)
+  const credsEl = document.getElementById('overview-stat-credits');
+  if (credsEl && kiroData.totalCreds > 0) credsEl.textContent = kiroData.totalCreds.toLocaleString();
+
+  // Overall SDLC Coverage = simple average of the 5 adoption %s shown in the phase pills
+  // (read from the DOM so the pills remain the single source of truth)
+  const fills = document.querySelectorAll('#panel-overview .adoption-bar-fill');
+  if (fills.length) {
+    const pcts = [...fills].map(el => parseInt(el.style.width) || 0);
+    const avg  = Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length);
+    const covEl = document.getElementById('overview-stat-coverage');
+    if (covEl) covEl.textContent = avg + '%';
+  }
 }
 
 // ── Overview charts ───────────────────────────────────────────────────────────
